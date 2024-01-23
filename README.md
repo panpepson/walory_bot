@@ -1,2 +1,3 @@
 # walory_bot
-Telegram bot  + bibyt 
+Telegram bot  + bybit 
+Sprawdza kurs pary
