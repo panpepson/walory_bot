@@ -1,12 +1,25 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { RestClientV5 } = require('bybit-api');
-//require('dotenv').config();
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config();
 
 const TELEGRAM_TOKEN = process.env.TELETOKEN;
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const bybitClient = new RestClientV5({ testnet: false, });
 
+function getEmoji(symbol) {
+    switch (symbol) {
+        case 'BTCUSDT':
+            return '🟡'; // Emotikon dla BTC (żółty)
+        case 'MATICUSDT':
+            return '🟢'; // Emotikon dla MATIC (zielony)
+        case 'XRPUSDT':
+            return '🔴'; // Emotikon dla XRP (czerwony)
+        case 'NEARUSDT':
+            return '🔵'; // Emotikon dla NEAR (niebieski)
+        default:
+            return ''; // Domyślny kolor
+    }
+}
 
 function getBybitPrice(symbol, chatId) {
     bybitClient.getOrderbook({
@@ -16,8 +29,13 @@ function getBybitPrice(symbol, chatId) {
     .then((response) => {
         const sellPrice = response.result.a[0][0];
         const buyPrice = response.result.b[0][0];
-// console.log(sellPrice)
-        const message = `${symbol} - ${sellPrice}\n`;
+
+        const emoji = getEmoji(symbol);
+
+        const symbolWithoutUSDT = symbol.slice(0, -4);
+        const message = `${emoji} ${symbolWithoutUSDT} - ${sellPrice}\n`;
+
+
         bot.sendMessage(chatId, message);
     })
     .catch((error) => {
