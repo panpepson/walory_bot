@@ -1,8 +1,11 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { RestClientV5 } = require('bybit-api');
+const axios = require('axios');
 require('dotenv').config();
 
 const TELEGRAM_TOKEN = process.env.TELETOKEN;
+const ESCAN = process.env.ESCAN;
+const GAS_API_URL = `https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${ESCAN}`;
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const bybitClient = new RestClientV5({ testnet: false, });
 
@@ -29,13 +32,9 @@ function getBybitPrice(symbol, chatId) {
     .then((response) => {
         const sellPrice = response.result.a[0][0];
         const buyPrice = response.result.b[0][0];
-
         const emoji = getEmoji(symbol);
-
         const symbolWithoutUSDT = symbol.slice(0, -4);
         const message = `${emoji} ${symbolWithoutUSDT} - ${sellPrice}\n`;
-
-
         bot.sendMessage(chatId, message);
     })
     .catch((error) => {
@@ -44,10 +43,14 @@ function getBybitPrice(symbol, chatId) {
     });
 }
 
+// Dodaj przycisk "GAS"
+const gasButton = [{ text: 'GAS' }];
+
 // Dodaj przyciski
 const keyboard = [
     [{ text: 'BTC' }, { text: 'MATIC' }],
     [{ text: 'XRP' }, { text: 'NEAR' }],
+    gasButton,
 ];
 
 // Utwórz opcje klawiatury
@@ -58,6 +61,19 @@ const options = {
         one_time_keyboard: true,
     }),
 };
+
+function getGasPrices(chatId) {
+    return axios.get(GAS_API_URL)
+        .then((response) => {
+            const gasData = response.data.result;
+            const message = `S:  ${gasData.SafeGasPrice}\nN:  ${gasData.ProposeGasPrice}\nF:  ${gasData.FastGasPrice}`;
+            bot.sendMessage(chatId, message);
+        })
+        .catch((error) => {
+            const errorMessage = `Failed to fetch gas prices from Etherscan. Error: ${error.message}`;
+            bot.sendMessage(chatId, errorMessage);
+        });
+}
 
 // Obsługa zdarzenia 'message'
 bot.on('message', (msg) => {
@@ -71,6 +87,8 @@ bot.on('message', (msg) => {
         getBybitPrice(symbol, chatId);
     } else if (msg.text === 'XRP' || msg.text === 'MATIC' || msg.text === 'BTC' || msg.text === 'NEAR') {
         getBybitPrice(msg.text + 'USDT', chatId);
+    }else if (msg.text === 'GAS') {
+        getGasPrices(chatId);
     }
 });
 
