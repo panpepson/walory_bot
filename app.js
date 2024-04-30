@@ -12,13 +12,17 @@ const bybitClient = new RestClientV5({ testnet: false, });
 function getEmoji(symbol) {
     switch (symbol) {
         case 'BTCUSDT':
-            return '🟡'; // Emotikon dla BTC (żółty)
+            return '🟠'; // Emotikon dla BTC (żółty)
         case 'MATICUSDT':
             return '🟢'; // Emotikon dla MATIC (zielony)
         case 'XRPUSDT':
             return '🔴'; // Emotikon dla XRP (czerwony)
         case 'NEARUSDT':
             return '🔵'; // Emotikon dla NEAR (niebieski)
+        case 'ETHUSDT':
+            return '⚪'; // Emotikon dla NEAR (niebieski)
+        case 'BNBUSDT':
+            return '🟡'; // Emotikon dla NEAR (niebieski)
         default:
             return ''; // Domyślny kolor
     }
@@ -48,9 +52,10 @@ const gasButton = [{ text: 'GAS' }];
 
 // Dodaj przyciski
 const keyboard = [
-    [{ text: 'BTC' }, { text: 'MATIC' }],
+    [{ text: 'ETH' }, { text: 'BTC' }],
+    [{ text: 'MATIC' }, { text: 'BNB' }],
     [{ text: 'XRP' }, { text: 'NEAR' }],
-    gasButton,
+     gasButton,
 ];
 
 // Utwórz opcje klawiatury
@@ -81,11 +86,11 @@ bot.on('message', (msg) => {
 
     // Sprawdź, czy wiadomość zawiera tekst komendy
     if (msg.text.startsWith('/start')) {
-        bot.sendMessage(chatId, 'Witaj! Wybierz kryptowalutę za pomocą przycisków poniżej, lub wpisując symbol w takim formacie "@ bat" ', options);
+        bot.sendMessage(chatId, 'Witaj! Wybierz kryptowalutę za pomocą przycisków poniżej, lub wpisując symbol w formacie np. "@ BTC"  czyli małpa spacja symbol ', options);
     } else if (msg.text.startsWith('@')) {
         const symbol = msg.text.split(' ')[1].toUpperCase() + 'USDT';
         getBybitPrice(symbol, chatId);
-    } else if (msg.text === 'XRP' || msg.text === 'MATIC' || msg.text === 'BTC' || msg.text === 'NEAR') {
+    } else if (msg.text === 'XRP' || msg.text === 'MATIC' || msg.text === 'BTC' || msg.text === 'NEAR' || msg.text === 'BNB' || msg.text === 'ETH') {
         getBybitPrice(msg.text + 'USDT', chatId);
     }else if (msg.text === 'GAS') {
         getGasPrices(chatId);
